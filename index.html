@@ -1271,7 +1271,8 @@
                 document.querySelector(`[data-meal-cal="${meal}"]`).textContent = `${totalCal} cal`;
             });
 
-            container.querySelectorAll('.remove-btn').forEach(btn => {
+            // Re-attach event listeners to all remove buttons
+            document.querySelectorAll('.remove-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     removeFoodFromMeal(btn.dataset.meal, parseInt(btn.dataset.uniqueId));
                 });
