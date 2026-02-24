@@ -643,6 +643,7 @@
         }
 
         .meal-option {
+            width: 100%;
             padding: 14px 18px;
             border: 2px solid var(--border);
             border-radius: var(--radius-sm);
@@ -652,11 +653,21 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-family: inherit;
+            font-size: 1rem;
+            text-align: left;
         }
 
         .meal-option:hover {
             border-color: var(--primary);
-            background: var(--surface);
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+        }
+
+        .meal-option:hover .meal-nutrients {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .meal-option span:first-child {
@@ -961,23 +972,24 @@
         <div class="modal">
             <h3>Add to Meal</h3>
             <div class="modal-food-name" id="modalFoodName"></div>
+            <p style="font-size: 14px; color: var(--text-secondary); margin: 12px 0; text-align: center;">Click a meal below to add this food:</p>
             <div class="meal-selector">
-                <div class="meal-option" data-meal="breakfast">
+                <button class="meal-option" data-meal="breakfast">
                     <span>🌅 Breakfast</span>
                     <span class="meal-nutrients" id="breakfastTotal">0 cal</span>
-                </div>
-                <div class="meal-option" data-meal="lunch">
+                </button>
+                <button class="meal-option" data-meal="lunch">
                     <span>☀️ Lunch</span>
                     <span class="meal-nutrients" id="lunchTotal">0 cal</span>
-                </div>
-                <div class="meal-option" data-meal="dinner">
+                </button>
+                <button class="meal-option" data-meal="dinner">
                     <span>🌙 Dinner</span>
                     <span class="meal-nutrients" id="dinnerTotal">0 cal</span>
-                </div>
-                <div class="meal-option" data-meal="snacks">
+                </button>
+                <button class="meal-option" data-meal="snacks">
                     <span>🍎 Snacks</span>
                     <span class="meal-nutrients" id="snacksTotal">0 cal</span>
-                </div>
+                </button>
             </div>
             <button class="btn btn-secondary modal-close" id="closeModal">Cancel</button>
         </div>
