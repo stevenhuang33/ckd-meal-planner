@@ -156,24 +156,6 @@
             background: #dc2626;
         }
 
-        .btn-export {
-            background: #7c3aed;
-            color: white;
-        }
-
-        .btn-export:hover {
-            background: #6d28d9;
-        }
-
-        .btn-import {
-            background: #0369a1;
-            color: white;
-        }
-
-        .btn-import:hover {
-            background: #0284c7;
-        }
-
         .patient-bar {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
@@ -984,11 +966,6 @@
         </select>
         <button class="btn btn-secondary" id="loadPlanBtn">Load</button>
         <button class="btn btn-danger" id="deletePlanBtn">Delete</button>
-        <button class="btn btn-export" id="exportJsonBtn">Export JSON</button>
-        <label class="btn btn-import" id="importJsonLabel" style="cursor:pointer; display:inline-flex; align-items:center;">
-            Import JSON
-            <input type="file" id="importJsonInput" accept=".json" style="display:none;">
-        </label>
     </div>
 
     <div class="modal-overlay" id="mealModal">
@@ -1192,8 +1169,6 @@
             document.getElementById('savePlanBtn').addEventListener('click', savePlan);
             document.getElementById('loadPlanBtn').addEventListener('click', loadPlan);
             document.getElementById('deletePlanBtn').addEventListener('click', deletePlan);
-            document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
-            document.getElementById('importJsonInput').addEventListener('change', importJson);
         }
 
         function renderFoodGrid() {
@@ -1417,58 +1392,6 @@
             saveToStorage();
             renderSavedPlans();
             showToast(`Deleted plan "${name}"`, 'success');
-        }
-
-        function exportJson() {
-            const data = {
-                currentPlan,
-                savedPlans,
-                patientWeight,
-                exportedAt: new Date().toISOString()
-            };
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `ckd-meal-planner-${new Date().toISOString().slice(0, 10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast('Plan exported successfully!', 'success');
-        }
-
-        function importJson(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    if (typeof data !== 'object' || data === null) throw new Error('Invalid format');
-                    if (data.currentPlan) {
-                        const meals = ['breakfast', 'lunch', 'dinner', 'snacks'];
-                        const validPlan = meals.every(m => Array.isArray(data.currentPlan[m]));
-                        if (!validPlan) throw new Error('Invalid plan structure');
-                        currentPlan = data.currentPlan;
-                    }
-                    if (data.savedPlans && typeof data.savedPlans === 'object') {
-                        savedPlans = data.savedPlans;
-                    }
-                    if (typeof data.patientWeight === 'number' && data.patientWeight > 0) {
-                        patientWeight = data.patientWeight;
-                        document.getElementById('weightInput').value = patientWeight;
-                        updateProteinTarget();
-                    }
-                    saveToStorage();
-                    renderSavedPlans();
-                    renderMealPlan();
-                    updateTotals();
-                    showToast('Plan imported successfully!', 'success');
-                } catch (err) {
-                    showToast('Invalid JSON file: ' + err.message, 'error');
-                }
-                e.target.value = '';
-            };
-            reader.readAsText(file);
         }
 
         function renderSavedPlans() {
