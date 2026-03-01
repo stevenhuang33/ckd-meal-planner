@@ -174,6 +174,22 @@
             background: #0284c7;
         }
 
+        .btn-link {
+            background: transparent;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 4px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .btn-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+
         .patient-bar {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
@@ -970,6 +986,17 @@
                             <div class="progress-fill" id="progressCal" style="width: 0%; background: var(--primary)"></div>
                         </div>
                     </div>
+                    <div class="total-item">
+                        <div class="total-label">💧 Fluid Intake</div>
+                        <div class="total-value status-green" id="totalFluid">0<small>mL</small></div>
+                        <div class="total-target">
+                            <span id="fluidLimit">1500</span>mL limit 
+                            <button class="btn-link" id="editFluidLimit" style="margin-left: 8px; font-size: 12px; padding: 2px 6px;">✏️ Edit</button>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-green" id="progressFluid" style="width: 0%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
@@ -1022,66 +1049,119 @@
 
     <script>
         const foodDatabase = [
-            { id: 1, name: "Chicken Breast", portion: "3oz (85g)", category: "proteins", na: 70, k: 280, p: 200, protein: 26, cal: 140 },
-            { id: 2, name: "Egg Whites", portion: "2 large", category: "proteins", na: 110, k: 110, p: 110, protein: 14, cal: 60 },
-            { id: 3, name: "Salmon", portion: "3oz (85g)", category: "proteins", na: 50, k: 300, p: 250, protein: 22, cal: 175 },
-            { id: 4, name: "Tofu (firm)", portion: "½ cup", category: "proteins", na: 8, k: 120, p: 120, protein: 10, cal: 76 },
-            { id: 5, name: "Turkey Breast", portion: "3oz (85g)", category: "proteins", na: 45, k: 220, p: 180, protein: 25, cal: 125 },
-            { id: 6, name: "Cod", portion: "3oz (85g)", category: "proteins", na: 60, k: 200, p: 180, protein: 19, cal: 70 },
-            { id: 7, name: "Shrimp", portion: "3oz (85g)", category: "proteins", na: 190, k: 180, p: 175, protein: 18, cal: 85 },
-            { id: 8, name: "Beef Sirloin", portion: "3oz (85g)", category: "proteins", na: 55, k: 280, p: 190, protein: 23, cal: 170 },
-            { id: 9, name: "Pork Tenderloin", portion: "3oz (85g)", category: "proteins", na: 45, k: 320, p: 200, protein: 22, cal: 140 },
-            { id: 10, name: "Lamb", portion: "3oz (85g)", category: "proteins", na: 60, k: 270, p: 185, protein: 22, cal: 175 },
-            { id: 11, name: "Duck (no skin)", portion: "3oz (85g)", category: "proteins", na: 65, k: 240, p: 190, protein: 21, cal: 180 },
-            { id: 12, name: "Cottage Cheese", portion: "½ cup", category: "proteins", na: 350, k: 90, p: 110, protein: 12, cal: 90 },
-            { id: 13, name: "Greek Yogurt", portion: "½ cup", category: "proteins", na: 55, k: 150, p: 100, protein: 10, cal: 65 },
-            { id: 14, name: "Tempeh", portion: "½ cup", category: "proteins", na: 14, k: 150, p: 140, protein: 15, cal: 90 },
-            { id: 15, name: "White Fish", portion: "3oz (85g)", category: "proteins", na: 55, k: 190, p: 170, protein: 18, cal: 75 },
-            { id: 16, name: "Cabbage", portion: "1 cup", category: "vegetables", na: 20, k: 180, p: 25, protein: 1, cal: 25 },
-            { id: 17, name: "Cauliflower", portion: "1 cup", category: "vegetables", na: 30, k: 320, p: 40, protein: 2, cal: 25 },
-            { id: 18, name: "Bell Peppers", portion: "1 cup", category: "vegetables", na: 5, k: 250, p: 30, protein: 1, cal: 30 },
-            { id: 19, name: "Cucumber", portion: "1 cup", category: "vegetables", na: 3, k: 175, p: 25, protein: 1, cal: 16 },
-            { id: 20, name: "Green Beans", portion: "1 cup", category: "vegetables", na: 6, k: 190, p: 35, protein: 2, cal: 30 },
-            { id: 21, name: "Lettuce", portion: "1 cup", category: "vegetables", na: 20, k: 140, p: 15, protein: 1, cal: 10 },
-            { id: 22, name: "Onion", portion: "½ cup", category: "vegetables", na: 4, k: 115, p: 20, protein: 1, cal: 30 },
-            { id: 23, name: "Zucchini", portion: "1 cup", category: "vegetables", na: 12, k: 325, p: 45, protein: 2, cal: 20 },
-            { id: 24, name: "Asparagus", portion: "6 spears", category: "vegetables", na: 3, k: 200, p: 50, protein: 2, cal: 20 },
-            { id: 25, name: "Broccoli", portion: "1 cup", category: "vegetables", na: 30, k: 290, p: 55, protein: 3, cal: 30 },
-            { id: 26, name: "Carrots", portion: "1 cup", category: "vegetables", na: 85, k: 390, p: 45, protein: 1, cal: 50 },
-            { id: 27, name: "Celery", portion: "1 cup", category: "vegetables", na: 100, k: 260, p: 25, protein: 1, cal: 15 },
-            { id: 28, name: "Kale", portion: "1 cup", category: "vegetables", na: 25, k: 180, p: 25, protein: 2, cal: 15 },
-            { id: 29, name: "Spinach (raw)", portion: "1 cup", category: "vegetables", na: 25, k: 55, p: 15, protein: 1, cal: 7 },
-            { id: 30, name: "Snow Peas", portion: "1 cup", category: "vegetables", na: 4, k: 190, p: 35, protein: 2, cal: 25 },
-            { id: 31, name: "Apple", portion: "1 medium", category: "fruits", na: 2, k: 195, p: 15, protein: 0, cal: 95 },
-            { id: 32, name: "Blueberries", portion: "½ cup", category: "fruits", na: 1, k: 60, p: 10, protein: 0, cal: 40 },
-            { id: 33, name: "Grapes", portion: "½ cup", category: "fruits", na: 3, k: 90, p: 15, protein: 0, cal: 55 },
-            { id: 34, name: "Pineapple", portion: "½ cup", category: "fruits", na: 1, k: 100, p: 10, protein: 0, cal: 40 },
-            { id: 35, name: "Cranberries", portion: "½ cup", category: "fruits", na: 2, k: 45, p: 8, protein: 0, cal: 20 },
-            { id: 36, name: "Raspberries", portion: "½ cup", category: "fruits", na: 1, k: 95, p: 15, protein: 1, cal: 30 },
-            { id: 37, name: "Strawberries", portion: "½ cup", category: "fruits", na: 1, k: 115, p: 20, protein: 0, cal: 25 },
-            { id: 38, name: "Watermelon", portion: "1 cup", category: "fruits", na: 3, k: 175, p: 15, protein: 1, cal: 50 },
-            { id: 39, name: "Pear", portion: "1 medium", category: "fruits", na: 2, k: 200, p: 15, protein: 0, cal: 100 },
-            { id: 40, name: "Peach", portion: "1 medium", category: "fruits", na: 0, k: 190, p: 20, protein: 1, cal: 60 },
-            { id: 41, name: "White Rice", portion: "½ cup cooked", category: "grains", na: 1, k: 30, p: 20, protein: 2, cal: 70 },
-            { id: 42, name: "Brown Rice", portion: "½ cup cooked", category: "grains", na: 10, k: 55, p: 80, protein: 2, cal: 55 },
-            { id: 43, name: "Pasta", portion: "½ cup cooked", category: "grains", na: 1, k: 25, p: 20, protein: 4, cal: 110 },
-            { id: 44, name: "White Bread", portion: "1 slice", category: "grains", na: 130, k: 25, p: 25, protein: 2, cal: 70 },
-            { id: 45, name: "Oatmeal", portion: "½ cup cooked", category: "grains", na: 5, k: 60, p: 70, protein: 3, cal: 75 },
-            { id: 46, name: "Couscous", portion: "½ cup cooked", category: "grains", na: 5, k: 40, p: 20, protein: 3, cal: 90 },
-            { id: 47, name: "Quinoa", portion: "½ cup cooked", category: "grains", na: 5, k: 90, p: 80, protein: 4, cal: 110 },
-            { id: 48, name: "Pancakes", portion: "2 small", category: "grains", na: 350, k: 90, p: 80, protein: 4, cal: 150 },
-            { id: 49, name: "Bagel (plain)", portion: "1 medium", category: "grains", na: 450, k: 55, p: 50, protein: 5, cal: 245 },
-            { id: 50, name: "Corn Flakes", portion: "1 cup", category: "grains", na: 200, k: 25, p: 10, protein: 2, cal: 100 },
-            { id: 51, name: "Olive Oil", portion: "1 tbsp", category: "fats", na: 0, k: 0, p: 0, protein: 0, cal: 120 },
-            { id: 52, name: "Butter", portion: "1 tbsp", category: "fats", na: 90, k: 3, p: 3, protein: 0, cal: 100 },
-            { id: 53, name: "Cream Cheese", portion: "2 tbsp", category: "fats", na: 140, k: 30, p: 25, protein: 2, cal: 100 },
-            { id: 54, name: "Almonds", portion: "10 nuts", category: "fats", na: 0, k: 70, p: 45, protein: 2, cal: 70 },
-            { id: 55, name: "Peanut Butter", portion: "1 tbsp", category: "fats", na: 70, k: 60, p: 55, protein: 2, cal: 95 },
-            { id: 56, name: "Avocado", portion: "¼ fruit", category: "fats", na: 5, k: 230, p: 30, protein: 1, cal: 80 },
-            { id: 57, name: "Margarine", portion: "1 tbsp", category: "fats", na: 90, k: 5, p: 5, protein: 0, cal: 100 },
-            { id: 58, name: "Honey", portion: "1 tbsp", category: "fats", na: 1, k: 6, p: 1, protein: 0, cal: 60 },
-            { id: 59, name: "Maple Syrup", portion: "1 tbsp", category: "fats", na: 2, k: 10, p: 2, protein: 0, cal: 50 },
-            { id: 60, name: "Jam", portion: "1 tbsp", category: "fats", na: 10, k: 15, p: 2, protein: 0, cal: 55 }
+            { id: 1, name: "Chicken Breast", portion: "3oz (85g)", category: "proteins", na: 70, k: 280, p: 200, protein: 26, cal: 140, fluid: 50 },
+            { id: 2, name: "Egg Whites", portion: "2 large", category: "proteins", na: 110, k: 110, p: 110, protein: 14, cal: 60, fluid: 60 },
+            { id: 3, name: "Salmon", portion: "3oz (85g)", category: "proteins", na: 50, k: 300, p: 250, protein: 22, cal: 175, fluid: 45 },
+            { id: 4, name: "Tofu (firm)", portion: "½ cup", category: "proteins", na: 8, k: 120, p: 120, protein: 10, cal: 76, fluid: 95 },
+            { id: 5, name: "Turkey Breast", portion: "3oz (85g)", category: "proteins", na: 45, k: 220, p: 180, protein: 25, cal: 125, fluid: 48 },
+            { id: 6, name: "Cod", portion: "3oz (85g)", category: "proteins", na: 60, k: 200, p: 180, protein: 19, cal: 70, fluid: 52 },
+            { id: 7, name: "Shrimp", portion: "3oz (85g)", category: "proteins", na: 190, k: 180, p: 175, protein: 18, cal: 85, fluid: 55 },
+            { id: 8, name: "Beef Sirloin", portion: "3oz (85g)", category: "proteins", na: 55, k: 280, p: 190, protein: 23, cal: 170, fluid: 42 },
+            { id: 9, name: "Pork Tenderloin", portion: "3oz (85g)", category: "proteins", na: 45, k: 320, p: 200, protein: 22, cal: 140, fluid: 45 },
+            { id: 10, name: "Lamb", portion: "3oz (85g)", category: "proteins", na: 60, k: 270, p: 185, protein: 22, cal: 175, fluid: 40 },
+            { id: 11, name: "Duck (no skin)", portion: "3oz (85g)", category: "proteins", na: 65, k: 240, p: 190, protein: 21, cal: 180, fluid: 42 },
+            { id: 12, name: "Cottage Cheese", portion: "½ cup", category: "proteins", na: 350, k: 90, p: 110, protein: 12, cal: 90, fluid: 100 },
+            { id: 13, name: "Greek Yogurt", portion: "½ cup", category: "proteins", na: 55, k: 150, p: 100, protein: 10, cal: 65, fluid: 105 },
+            { id: 14, name: "Tempeh", portion: "½ cup", category: "proteins", na: 14, k: 150, p: 140, protein: 15, cal: 90, fluid: 55 },
+            { id: 15, name: "White Fish", portion: "3oz (85g)", category: "proteins", na: 55, k: 190, p: 170, protein: 18, cal: 75, fluid: 54 },
+            { id: 16, name: "Cabbage", portion: "1 cup", category: "vegetables", na: 20, k: 180, p: 25, protein: 1, cal: 25, fluid: 135 },
+            { id: 17, name: "Cauliflower", portion: "1 cup", category: "vegetables", na: 30, k: 320, p: 40, protein: 2, cal: 25, fluid: 120 },
+            { id: 18, name: "Bell Peppers", portion: "1 cup", category: "vegetables", na: 5, k: 250, p: 30, protein: 1, cal: 30, fluid: 140 },
+            { id: 19, name: "Cucumber", portion: "1 cup", category: "vegetables", na: 3, k: 175, p: 25, protein: 1, cal: 16, fluid: 150 },
+            { id: 20, name: "Green Beans", portion: "1 cup", category: "vegetables", na: 6, k: 190, p: 35, protein: 2, cal: 30, fluid: 125 },
+            { id: 21, name: "Lettuce", portion: "1 cup", category: "vegetables", na: 20, k: 140, p: 15, protein: 1, cal: 10, fluid: 145 },
+            { id: 22, name: "Onion", portion: "½ cup", category: "vegetables", na: 4, k: 115, p: 20, protein: 1, cal: 30, fluid: 65 },
+            { id: 23, name: "Zucchini", portion: "1 cup", category: "vegetables", na: 12, k: 325, p: 45, protein: 2, cal: 20, fluid: 140 },
+            { id: 24, name: "Asparagus", portion: "6 spears", category: "vegetables", na: 3, k: 200, p: 50, protein: 2, cal: 20, fluid: 85 },
+            { id: 25, name: "Broccoli", portion: "1 cup", category: "vegetables", na: 30, k: 290, p: 55, protein: 3, cal: 30, fluid: 125 },
+            { id: 26, name: "Carrots", portion: "1 cup", category: "vegetables", na: 85, k: 390, p: 45, protein: 1, cal: 50, fluid: 130 },
+            { id: 27, name: "Celery", portion: "1 cup", category: "vegetables", na: 100, k: 260, p: 25, protein: 1, cal: 15, fluid: 145 },
+            { id: 28, name: "Kale", portion: "1 cup", category: "vegetables", na: 25, k: 180, p: 25, protein: 2, cal: 15, fluid: 115 },
+            { id: 29, name: "Spinach (raw)", portion: "1 cup", category: "vegetables", na: 25, k: 55, p: 15, protein: 1, cal: 7, fluid: 140 },
+            { id: 30, name: "Snow Peas", portion: "1 cup", category: "vegetables", na: 4, k: 190, p: 35, protein: 2, cal: 25, fluid: 120 },
+            { id: 31, name: "Apple", portion: "1 medium", category: "fruits", na: 2, k: 195, p: 15, protein: 0, cal: 95, fluid: 165 },
+            { id: 32, name: "Blueberries", portion: "½ cup", category: "fruits", na: 1, k: 60, p: 10, protein: 0, cal: 40, fluid: 70 },
+            { id: 33, name: "Grapes", portion: "½ cup", category: "fruits", na: 3, k: 90, p: 15, protein: 0, cal: 55, fluid: 85 },
+            { id: 34, name: "Pineapple", portion: "½ cup", category: "fruits", na: 1, k: 100, p: 10, protein: 0, cal: 40, fluid: 90 },
+            { id: 35, name: "Cranberries", portion: "½ cup", category: "fruits", na: 2, k: 45, p: 8, protein: 0, cal: 20, fluid: 75 },
+            { id: 36, name: "Raspberries", portion: "½ cup", category: "fruits", na: 1, k: 95, p: 15, protein: 1, cal: 30, fluid: 70 },
+            { id: 37, name: "Strawberries", portion: "½ cup", category: "fruits", na: 1, k: 115, p: 20, protein: 0, cal: 25, fluid: 80 },
+            { id: 38, name: "Watermelon", portion: "1 cup", category: "fruits", na: 3, k: 175, p: 15, protein: 1, cal: 50, fluid: 145 },
+            { id: 39, name: "Pear", portion: "1 medium", category: "fruits", na: 2, k: 200, p: 15, protein: 0, cal: 100, fluid: 155 },
+            { id: 40, name: "Peach", portion: "1 medium", category: "fruits", na: 0, k: 190, p: 20, protein: 1, cal: 60, fluid: 135 },
+            { id: 41, name: "White Rice", portion: "½ cup cooked", category: "grains", na: 1, k: 30, p: 20, protein: 2, cal: 70, fluid: 60 },
+            { id: 42, name: "Brown Rice", portion: "½ cup cooked", category: "grains", na: 10, k: 55, p: 80, protein: 2, cal: 55, fluid: 55 },
+            { id: 43, name: "Pasta", portion: "½ cup cooked", category: "grains", na: 1, k: 25, p: 20, protein: 4, cal: 110, fluid: 75 },
+            { id: 44, name: "White Bread", portion: "1 slice", category: "grains", na: 130, k: 25, p: 25, protein: 2, cal: 70, fluid: 12 },
+            { id: 45, name: "Oatmeal", portion: "½ cup cooked", category: "grains", na: 5, k: 60, p: 70, protein: 3, cal: 75, fluid: 85 },
+            { id: 46, name: "Couscous", portion: "½ cup cooked", category: "grains", na: 5, k: 40, p: 20, protein: 3, cal: 90, fluid: 65 },
+            { id: 47, name: "Quinoa", portion: "½ cup cooked", category: "grains", na: 5, k: 90, p: 80, protein: 4, cal: 110, fluid: 70 },
+            { id: 48, name: "Pancakes", portion: "2 small", category: "grains", na: 350, k: 90, p: 80, protein: 4, cal: 150, fluid: 45 },
+            { id: 49, name: "Bagel (plain)", portion: "1 medium", category: "grains", na: 450, k: 55, p: 50, protein: 5, cal: 245, fluid: 25 },
+            { id: 50, name: "Corn Flakes", portion: "1 cup", category: "grains", na: 200, k: 25, p: 10, protein: 2, cal: 100, fluid: 5 },
+            { id: 51, name: "Olive Oil", portion: "1 tbsp", category: "fats", na: 0, k: 0, p: 0, protein: 0, cal: 120, fluid: 0 },
+            { id: 52, name: "Butter", portion: "1 tbsp", category: "fats", na: 90, k: 3, p: 3, protein: 0, cal: 100, fluid: 2 },
+            { id: 53, name: "Cream Cheese", portion: "2 tbsp", category: "fats", na: 140, k: 30, p: 25, protein: 2, cal: 100, fluid: 18 },
+            { id: 54, name: "Almonds", portion: "10 nuts", category: "fats", na: 0, k: 70, p: 45, protein: 2, cal: 70, fluid: 2 },
+            { id: 55, name: "Peanut Butter", portion: "1 tbsp", category: "fats", na: 70, k: 60, p: 55, protein: 2, cal: 95, fluid: 3 },
+            { id: 56, name: "Avocado", portion: "¼ fruit", category: "fats", na: 5, k: 230, p: 30, protein: 1, cal: 80, fluid: 40 },
+            { id: 57, name: "Margarine", portion: "1 tbsp", category: "fats", na: 90, k: 5, p: 5, protein: 0, cal: 100, fluid: 2 },
+            { id: 58, name: "Honey", portion: "1 tbsp", category: "fats", na: 1, k: 6, p: 1, protein: 0, cal: 60, fluid: 5 },
+            { id: 59, name: "Maple Syrup", portion: "1 tbsp", category: "fats", na: 2, k: 10, p: 2, protein: 0, cal: 50, fluid: 8 },
+            { id: 60, name: "Jam", portion: "1 tbsp", category: "fats", na: 10, k: 15, p: 2, protein: 0, cal: 55, fluid: 10 },
+            // Asian/Chinese Foods
+            { id: 61, name: "Steamed White Rice", portion: "1 cup cooked", category: "grains", na: 2, k: 60, p: 40, protein: 4, cal: 205, fluid: 120 },
+            { id: 62, name: "Rice Noodles", portion: "1 cup cooked", category: "grains", na: 3, k: 30, p: 25, protein: 2, cal: 190, fluid: 150 },
+            { id: 63, name: "Bok Choy", portion: "1 cup", category: "vegetables", na: 45, k: 175, p: 25, protein: 1, cal: 10, fluid: 150 },
+            { id: 64, name: "Chinese Cabbage (Napa)", portion: "1 cup", category: "vegetables", na: 10, k: 180, p: 25, protein: 1, cal: 12, fluid: 145 },
+            { id: 65, name: "Snow Peas (stir-fried)", portion: "1 cup", category: "vegetables", na: 5, k: 200, p: 40, protein: 3, cal: 35, fluid: 100 },
+            { id: 66, name: "Water Chestnuts", portion: "½ cup", category: "vegetables", na: 10, k: 240, p: 30, protein: 1, cal: 60, fluid: 85 },
+            { id: 67, name: "Bamboo Shoots", portion: "½ cup", category: "vegetables", na: 5, k: 320, p: 20, protein: 1, cal: 12, fluid: 110 },
+            { id: 68, name: "Bean Sprouts", portion: "1 cup", category: "vegetables", na: 6, k: 155, p: 45, protein: 3, cal: 30, fluid: 125 },
+            { id: 69, name: "Shiitake Mushrooms", portion: "½ cup", category: "vegetables", na: 4, k: 85, p: 30, protein: 1, cal: 20, fluid: 70 },
+            { id: 70, name: "Chinese Eggplant", portion: "1 cup", category: "vegetables", na: 2, k: 230, p: 25, protein: 1, cal: 35, fluid: 135 },
+            { id: 71, name: "Gai Lan (Chinese Broccoli)", portion: "1 cup", category: "vegetables", na: 15, k: 280, p: 50, protein: 2, cal: 20, fluid: 130 },
+            { id: 72, name: "Steamed Fish (Tilapia)", portion: "3oz (85g)", category: "proteins", na: 50, k: 250, p: 180, protein: 22, cal: 110, fluid: 50 },
+            { id: 73, name: "Steamed Chicken", portion: "3oz (85g)", category: "proteins", na: 65, k: 270, p: 195, protein: 25, cal: 135, fluid: 45 },
+            { id: 74, name: "Pork (lean, steamed)", portion: "3oz (85g)", category: "proteins", na: 50, k: 310, p: 195, protein: 21, cal: 150, fluid: 40 },
+            { id: 75, name: "Tofu (silken)", portion: "½ cup", category: "proteins", na: 5, k: 100, p: 100, protein: 8, cal: 60, fluid: 110 },
+            { id: 76, name: "Dried Tofu", portion: "2oz (56g)", category: "proteins", na: 10, k: 95, p: 140, protein: 12, cal: 90, fluid: 20 },
+            { id: 77, name: "Lychee", portion: "½ cup", category: "fruits", na: 1, k: 160, p: 15, protein: 0, cal: 65, fluid: 85 },
+            { id: 78, name: "Longan", portion: "½ cup", category: "fruits", na: 1, k: 140, p: 12, protein: 0, cal: 35, fluid: 75 },
+            { id: 79, name: "Dragon Fruit", portion: "½ cup", category: "fruits", na: 2, k: 135, p: 20, protein: 1, cal: 30, fluid: 90 },
+            { id: 80, name: "Asian Pear", portion: "1 medium", category: "fruits", na: 0, k: 210, p: 15, protein: 0, cal: 50, fluid: 180 },
+            // More Common Foods
+            { id: 81, name: "Mashed Potatoes", portion: "½ cup", category: "grains", na: 180, k: 250, p: 50, protein: 2, cal: 110, fluid: 70 },
+            { id: 82, name: "Sweet Potato", portion: "½ cup", category: "grains", na: 35, k: 260, p: 45, protein: 2, cal: 90, fluid: 75 },
+            { id: 83, name: "French Fries", portion: "10 fries", category: "grains", na: 150, k: 220, p: 45, protein: 2, cal: 160, fluid: 15 },
+            { id: 84, name: "Crackers (saltines)", portion: "5 crackers", category: "grains", na: 180, k: 20, p: 15, protein: 1, cal: 60, fluid: 2 },
+            { id: 85, name: "Pretzels", portion: "10 small", category: "grains", na: 360, k: 40, p: 30, protein: 2, cal: 110, fluid: 3 },
+            { id: 86, name: "Popcorn (air-popped)", portion: "2 cups", category: "grains", na: 2, k: 60, p: 55, protein: 2, cal: 60, fluid: 5 },
+            { id: 87, name: "Tortilla (corn)", portion: "1 small", category: "grains", na: 10, k: 40, p: 60, protein: 2, cal: 50, fluid: 10 },
+            { id: 88, name: "Pita Bread", portion: "1 small", category: "grains", na: 150, k: 35, p: 30, protein: 3, cal: 80, fluid: 15 },
+            { id: 89, name: "Walnuts", portion: "7 halves", category: "fats", na: 0, k: 95, p: 65, protein: 3, cal: 95, fluid: 2 },
+            { id: 90, name: "Cashews", portion: "10 nuts", category: "fats", na: 3, k: 95, p: 75, protein: 3, cal: 90, fluid: 2 },
+            { id: 91, name: "Sunflower Seeds", portion: "2 tbsp", category: "fats", na: 1, k: 120, p: 120, protein: 3, cal: 100, fluid: 2 },
+            { id: 92, name: "Pumpkin Seeds", portion: "2 tbsp", category: "fats", na: 3, k: 145, p: 185, protein: 5, cal: 90, fluid: 2 },
+            { id: 93, name: "Coconut Oil", portion: "1 tbsp", category: "fats", na: 0, k: 0, p: 0, protein: 0, cal: 120, fluid: 0 },
+            { id: 94, name: "Mayonnaise", portion: "1 tbsp", category: "fats", na: 90, k: 5, p: 4, protein: 0, cal: 95, fluid: 5 },
+            { id: 95, name: "Ranch Dressing", portion: "2 tbsp", category: "fats", na: 260, k: 25, p: 20, protein: 0, cal: 140, fluid: 15 },
+            { id: 96, name: "Sour Cream", portion: "2 tbsp", category: "fats", na: 15, k: 35, p: 20, protein: 1, cal: 60, fluid: 20 },
+            { id: 97, name: "Whipped Cream", portion: "2 tbsp", category: "fats", na: 5, k: 10, p: 5, protein: 0, cal: 20, fluid: 15 },
+            { id: 98, name: "Hummus", portion: "2 tbsp", category: "fats", na: 120, k: 85, p: 35, protein: 2, cal: 50, fluid: 15 },
+            { id: 99, name: "Guacamole", portion: "2 tbsp", category: "fats", na: 80, k: 140, p: 20, protein: 1, cal: 45, fluid: 20 },
+            { id: 100, name: "Caesar Dressing", portion: "2 tbsp", category: "fats", na: 340, k: 20, p: 15, protein: 0, cal: 160, fluid: 12 },
+            // Beverages (new category)
+            { id: 101, name: "Water", portion: "8 oz (240ml)", category: "beverages", na: 0, k: 0, p: 0, protein: 0, cal: 0, fluid: 240 },
+            { id: 102, name: "Coffee (black)", portion: "8 oz (240ml)", category: "beverages", na: 5, k: 115, p: 5, protein: 0, cal: 2, fluid: 235 },
+            { id: 103, name: "Tea (unsweetened)", portion: "8 oz (240ml)", category: "beverages", na: 2, k: 90, p: 3, protein: 0, cal: 2, fluid: 237 },
+            { id: 104, name: "Almond Milk (unsweetened)", portion: "8 oz (240ml)", category: "beverages", na: 160, k: 180, p: 25, protein: 1, cal: 35, fluid: 230 },
+            { id: 105, name: "Apple Juice", portion: "4 oz (120ml)", category: "beverages", na: 5, k: 150, p: 10, protein: 0, cal: 60, fluid: 115 },
+            { id: 106, name: "Cranberry Juice", portion: "4 oz (120ml)", category: "beverages", na: 3, k: 45, p: 5, protein: 0, cal: 55, fluid: 115 },
+            { id: 107, name: "Lemonade", portion: "8 oz (240ml)", category: "beverages", na: 10, k: 30, p: 5, protein: 0, cal: 100, fluid: 230 },
+            { id: 108, name: "Iced Tea (sweetened)", portion: "8 oz (240ml)", category: "beverages", na: 5, k: 60, p: 5, protein: 0, cal: 90, fluid: 235 },
+            { id: 109, name: "Soda (clear)", portion: "8 oz (240ml)", category: "beverages", na: 25, k: 2, p: 10, protein: 0, cal: 100, fluid: 237 },
+            { id: 110, name: "Ginger Ale", portion: "8 oz (240ml)", category: "beverages", na: 25, k: 5, p: 5, protein: 0, cal: 85, fluid: 235 }
         ];
 
         let currentPlan = {
@@ -1093,6 +1173,7 @@
 
         let savedPlans = {};
         let patientWeight = 70;
+        let dailyFluidLimit = 1500; // mL - typical for CKD Stage 3
         let selectedFood = null;
         let currentCategory = 'all';
         let searchQuery = '';
@@ -1115,7 +1196,9 @@
                 currentPlan = data.currentPlan || { breakfast: [], lunch: [], dinner: [], snacks: [] };
                 savedPlans = data.savedPlans || {};
                 patientWeight = data.patientWeight || 70;
+                dailyFluidLimit = data.dailyFluidLimit || 1500;
                 document.getElementById('weightInput').value = patientWeight;
+                document.getElementById('fluidLimit').textContent = dailyFluidLimit;
             }
 
             const theme = localStorage.getItem('ckdTheme');
@@ -1128,7 +1211,8 @@
             const data = {
                 currentPlan,
                 savedPlans,
-                patientWeight
+                patientWeight,
+                dailyFluidLimit
             };
             localStorage.setItem('ckdMealPlanner', JSON.stringify(data));
         }
@@ -1194,6 +1278,7 @@
             document.getElementById('deletePlanBtn').addEventListener('click', deletePlan);
             document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
             document.getElementById('importJsonInput').addEventListener('change', importJson);
+            document.getElementById('editFluidLimit').addEventListener('click', editFluidLimit);
         }
 
         function renderFoodGrid() {
@@ -1305,7 +1390,7 @@
         }
 
         function updateTotals() {
-            const totals = { na: 0, k: 0, p: 0, protein: 0, cal: 0 };
+            const totals = { na: 0, k: 0, p: 0, protein: 0, cal: 0, fluid: 0 };
             
             Object.values(currentPlan).forEach(meal => {
                 meal.forEach(item => {
@@ -1314,6 +1399,7 @@
                     totals.p += item.p;
                     totals.protein += item.protein;
                     totals.cal += item.cal;
+                    totals.fluid += item.fluid || 0;
                 });
             });
 
@@ -1322,12 +1408,14 @@
             document.getElementById('totalP').innerHTML = `${totals.p}<small>mg</small>`;
             document.getElementById('totalProtein').innerHTML = `${totals.protein}<small>g</small>`;
             document.getElementById('totalCal').textContent = totals.cal;
+            document.getElementById('totalFluid').innerHTML = `${totals.fluid}<small>mL</small>`;
 
             updateProgressBar('Na', totals.na, 2000, true);
             updateProgressBar('K', totals.k, 3000, false, 2000);
             updateProgressBar('P', totals.p, 1000, false, 800);
             updateProgressBar('Protein', totals.protein, patientWeight * 1.0, false, patientWeight * 0.8);
             updateProgressBar('Cal', totals.cal, 2500, false);
+            updateProgressBar('Fluid', totals.fluid, dailyFluidLimit, true);
         }
 
         function updateProgressBar(nutrient, value, max, isUpperOnly = false, min = 0) {
@@ -1419,11 +1507,23 @@
             showToast(`Deleted plan "${name}"`, 'success');
         }
 
+        function editFluidLimit() {
+            const newLimit = prompt('Enter daily fluid limit in mL:', dailyFluidLimit);
+            if (newLimit !== null && !isNaN(newLimit) && newLimit > 0) {
+                dailyFluidLimit = parseInt(newLimit);
+                document.getElementById('fluidLimit').textContent = dailyFluidLimit;
+                saveToStorage();
+                updateTotals();
+                showToast(`Fluid limit updated to ${dailyFluidLimit}mL`, 'success');
+            }
+        }
+
         function exportJson() {
             const data = {
                 currentPlan,
                 savedPlans,
                 patientWeight,
+                dailyFluidLimit,
                 exportedAt: new Date().toISOString()
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1457,6 +1557,10 @@
                         patientWeight = data.patientWeight;
                         document.getElementById('weightInput').value = patientWeight;
                         updateProteinTarget();
+                    }
+                    if (typeof data.dailyFluidLimit === 'number' && data.dailyFluidLimit > 0) {
+                        dailyFluidLimit = data.dailyFluidLimit;
+                        document.getElementById('fluidLimit').textContent = dailyFluidLimit;
                     }
                     saveToStorage();
                     renderSavedPlans();
