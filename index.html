@@ -1365,6 +1365,11 @@
             document.getElementById('labsBtn').addEventListener('click', openLabModal);
             document.getElementById('saveLabsBtn').addEventListener('click', saveLabValues);
             document.getElementById('closeLabModal').addEventListener('click', closeLabModal);
+            
+            // Close modal when clicking outside
+            document.getElementById('labModal').addEventListener('click', (e) => {
+                if (e.target.id === 'labModal') closeLabModal();
+            });
         }
 
         function getFoodWarningClass(food) {
@@ -1755,6 +1760,7 @@
         }
 
         function openLabModal() {
+            console.log('Opening lab modal...');
             // Populate with current values
             document.getElementById('labEgfr').value = labValues.egfr || '';
             document.getElementById('labPotassium').value = labValues.potassium || '';
@@ -1762,7 +1768,13 @@
             document.getElementById('labAlbumin').value = labValues.albumin || '';
             document.getElementById('labSodium').value = labValues.sodium || '';
             
-            document.getElementById('labModal').style.display = 'flex';
+            const modal = document.getElementById('labModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('Modal should be visible now');
+            } else {
+                console.error('Lab modal element not found!');
+            }
         }
 
         function closeLabModal() {
