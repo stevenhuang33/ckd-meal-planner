@@ -367,6 +367,29 @@
             border-color: var(--primary-light);
         }
 
+        .food-card.food-warning-high-k {
+            border-color: var(--red);
+            border-width: 2px;
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        .food-card.food-warning-high-p {
+            border-color: var(--yellow);
+            border-width: 2px;
+            background: rgba(234, 179, 8, 0.05);
+        }
+
+        .food-card.food-safe {
+            border-color: var(--green);
+            border-width: 2px;
+            background: rgba(34, 197, 94, 0.05);
+        }
+
+        .badge-warning {
+            background: var(--red) !important;
+            color: white !important;
+        }
+
         .food-card-name {
             font-weight: 600;
             font-size: 14px;
@@ -872,7 +895,52 @@
             </div>
         </div>
         <div style="font-size: 13px; color: var(--text-secondary);">
-            <strong>Daily Limits:</strong> Sodium &lt;2000mg • Potassium 2000-3000mg • Phosphorus 800-1000mg
+            <strong>Daily Limits:</strong> Sodium &lt;2000mg • Potassium <span id="kTarget">2000-3000mg</span> • Phosphorus <span id="pTarget">800-1000mg</span>
+        </div>
+        <button class="btn btn-primary" id="labsBtn" style="margin-left: auto;">⚕️ Lab Results</button>
+    </div>
+
+    <div class="modal-overlay" id="labModal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <h2>⚕️ Lab Results</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Enter your latest lab values to automatically adjust dietary targets.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">eGFR (mL/min/1.73m²)</label>
+                    <input type="number" id="labEgfr" class="weight-input" style="width: 100%;" placeholder="e.g., 35" step="0.1">
+                    <small style="color: var(--text-muted);">Stage 3A: 45-59, 3B: 30-44</small>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Potassium (mmol/L)</label>
+                    <input type="number" id="labPotassium" class="weight-input" style="width: 100%;" placeholder="e.g., 4.5" step="0.1">
+                    <small style="color: var(--text-muted);">Normal: 3.5-5.0</small>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Phosphorus (mg/dL)</label>
+                    <input type="number" id="labPhosphorus" class="weight-input" style="width: 100%;" placeholder="e.g., 4.2" step="0.1">
+                    <small style="color: var(--text-muted);">Normal: 2.5-4.5</small>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Albumin (g/dL)</label>
+                    <input type="number" id="labAlbumin" class="weight-input" style="width: 100%;" placeholder="e.g., 4.0" step="0.1">
+                    <small style="color: var(--text-muted);">Normal: 3.5-5.5</small>
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 4px; font-weight: 500;">Sodium (mmol/L)</label>
+                    <input type="number" id="labSodium" class="weight-input" style="width: 100%;" placeholder="e.g., 140" step="1">
+                    <small style="color: var(--text-muted);">Normal: 135-145</small>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 12px; background: var(--bg); border-radius: 8px; font-size: 13px;" id="labAdjustmentInfo">
+                <strong>💡 Tip:</strong> Leave fields empty if you don't have recent values. The app will use standard CKD Stage 3 targets.
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button class="btn btn-primary" id="saveLabsBtn">Save & Apply</button>
+                <button class="btn btn-secondary modal-close" id="closeLabModal">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -1174,6 +1242,14 @@
         let savedPlans = {};
         let patientWeight = 70;
         let dailyFluidLimit = 1500; // mL - typical for CKD Stage 3
+        let labValues = {
+            egfr: null,
+            potassium: null,
+            phosphorus: null,
+            albumin: null,
+            sodium: null,
+            lastUpdated: null
+        };
         let selectedFood = null;
         let currentCategory = 'all';
         let searchQuery = '';
@@ -1197,8 +1273,14 @@
                 savedPlans = data.savedPlans || {};
                 patientWeight = data.patientWeight || 70;
                 dailyFluidLimit = data.dailyFluidLimit || 1500;
+                labValues = data.labValues || { egfr: null, potassium: null, phosphorus: null, albumin: null, sodium: null, lastUpdated: null };
                 document.getElementById('weightInput').value = patientWeight;
                 document.getElementById('fluidLimit').textContent = dailyFluidLimit;
+                
+                // Apply lab-based adjustments if values exist
+                if (labValues.egfr !== null || labValues.potassium !== null) {
+                    applyLabAdjustments();
+                }
             }
 
             const theme = localStorage.getItem('ckdTheme');
@@ -1212,7 +1294,8 @@
                 currentPlan,
                 savedPlans,
                 patientWeight,
-                dailyFluidLimit
+                dailyFluidLimit,
+                labValues
             };
             localStorage.setItem('ckdMealPlanner', JSON.stringify(data));
         }
@@ -1279,6 +1362,24 @@
             document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
             document.getElementById('importJsonInput').addEventListener('change', importJson);
             document.getElementById('editFluidLimit').addEventListener('click', editFluidLimit);
+            document.getElementById('labsBtn').addEventListener('click', openLabModal);
+            document.getElementById('saveLabsBtn').addEventListener('click', saveLabValues);
+            document.getElementById('closeLabModal').addEventListener('click', closeLabModal);
+        }
+
+        function getFoodWarningClass(food) {
+            // Check if food is risky based on lab values
+            if (labValues.potassium !== null && labValues.potassium > 5.0 && food.k > 250) {
+                return 'food-warning-high-k';
+            }
+            if (labValues.phosphorus !== null && labValues.phosphorus > 4.0 && food.p > 150) {
+                return 'food-warning-high-p';
+            }
+            // Safe food for current labs
+            if (labValues.potassium !== null && labValues.potassium > 5.0 && food.k < 150) {
+                return 'food-safe';
+            }
+            return '';
         }
 
         function renderFoodGrid() {
@@ -1298,19 +1399,27 @@
                 return;
             }
 
-            grid.innerHTML = foods.map(food => `
-                <div class="food-card" data-food-id="${food.id}">
+            grid.innerHTML = foods.map(food => {
+                const warningClass = getFoodWarningClass(food);
+                const warningIcon = warningClass.includes('warning-high-k') ? '⚠️ High K' : 
+                                   warningClass.includes('warning-high-p') ? '⚠️ High P' : 
+                                   warningClass.includes('safe') ? '✅' : '';
+                
+                return `
+                <div class="food-card ${warningClass}" data-food-id="${food.id}">
+                    ${warningIcon ? `<div style="position: absolute; top: 8px; right: 8px; font-size: 11px;">${warningIcon}</div>` : ''}
                     <div class="food-card-name">${food.name}</div>
                     <div class="food-card-portion">${food.portion}</div>
                     <div class="nutrient-badges">
                         <span class="nutrient-badge badge-na">${food.na}mg Na</span>
-                        <span class="nutrient-badge badge-k">${food.k}mg K</span>
-                        <span class="nutrient-badge badge-p">${food.p}mg P</span>
+                        <span class="nutrient-badge badge-k ${warningClass.includes('high-k') ? 'badge-warning' : ''}">${food.k}mg K</span>
+                        <span class="nutrient-badge badge-p ${warningClass.includes('high-p') ? 'badge-warning' : ''}">${food.p}mg P</span>
                         <span class="nutrient-badge badge-protein">${food.protein}g</span>
                         <span class="nutrient-badge badge-cal">${food.cal}</span>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             grid.querySelectorAll('.food-card').forEach(card => {
                 card.addEventListener('click', () => {
@@ -1463,10 +1572,137 @@
         }
 
         function updateProteinTarget() {
-            const min = Math.round(patientWeight * 0.8);
-            const max = Math.round(patientWeight * 1.0);
+            let min, max;
+            
+            // Adjust protein based on eGFR if available
+            if (labValues.egfr !== null) {
+                if (labValues.egfr < 30) {
+                    // Stage 3B-4: Lower protein (0.6-0.8 g/kg)
+                    min = Math.round(patientWeight * 0.6);
+                    max = Math.round(patientWeight * 0.8);
+                } else if (labValues.egfr < 45) {
+                    // Stage 3B: Moderate restriction (0.7-0.9 g/kg)
+                    min = Math.round(patientWeight * 0.7);
+                    max = Math.round(patientWeight * 0.9);
+                } else {
+                    // Stage 3A or better: Standard (0.8-1.0 g/kg)
+                    min = Math.round(patientWeight * 0.8);
+                    max = Math.round(patientWeight * 1.0);
+                }
+                
+                // Adjust up if albumin is low (malnutrition risk)
+                if (labValues.albumin !== null && labValues.albumin < 3.5) {
+                    max = Math.round(patientWeight * 1.0); // May need more protein
+                }
+            } else {
+                // Default if no eGFR
+                min = Math.round(patientWeight * 0.8);
+                max = Math.round(patientWeight * 1.0);
+            }
+            
             document.getElementById('proteinTarget').textContent = `${min}-${max}g`;
             document.getElementById('targetProteinRange').textContent = `${min}-${max}g`;
+        }
+
+        function calculateAdjustedTargets() {
+            let targets = {
+                sodium: 2000,
+                potassiumMin: 2000,
+                potassiumMax: 3000,
+                phosphorusMin: 800,
+                phosphorusMax: 1000,
+                fluidLimit: 1500,
+                adjustments: []
+            };
+
+            // Adjust potassium based on serum levels
+            if (labValues.potassium !== null) {
+                if (labValues.potassium > 5.5) {
+                    targets.potassiumMin = 1500;
+                    targets.potassiumMax = 2000;
+                    targets.adjustments.push('⚠️ High potassium: Limit reduced to 1500-2000mg');
+                } else if (labValues.potassium > 5.0) {
+                    targets.potassiumMin = 1800;
+                    targets.potassiumMax = 2500;
+                    targets.adjustments.push('⚠️ Elevated potassium: Limit reduced to 1800-2500mg');
+                } else if (labValues.potassium < 3.5) {
+                    targets.potassiumMin = 2500;
+                    targets.potassiumMax = 3500;
+                    targets.adjustments.push('✅ Low potassium: Can increase to 2500-3500mg');
+                }
+            }
+
+            // Adjust phosphorus based on serum levels
+            if (labValues.phosphorus !== null) {
+                if (labValues.phosphorus > 4.5) {
+                    targets.phosphorusMin = 600;
+                    targets.phosphorusMax = 800;
+                    targets.adjustments.push('⚠️ High phosphorus: Limit reduced to 600-800mg');
+                } else if (labValues.phosphorus > 4.0) {
+                    targets.phosphorusMin = 700;
+                    targets.phosphorusMax = 900;
+                    targets.adjustments.push('⚠️ Elevated phosphorus: Limit reduced to 700-900mg');
+                }
+            }
+
+            // Adjust fluid based on eGFR
+            if (labValues.egfr !== null) {
+                if (labValues.egfr < 30) {
+                    targets.fluidLimit = 1200;
+                    targets.adjustments.push('⚠️ eGFR <30: Fluid limited to 1200mL');
+                } else if (labValues.egfr < 45) {
+                    targets.fluidLimit = 1500;
+                    targets.adjustments.push('ℹ️ eGFR 30-44: Fluid limited to 1500mL');
+                } else {
+                    targets.fluidLimit = 2000;
+                    targets.adjustments.push('✅ eGFR ≥45: Less strict fluid limit (2000mL)');
+                }
+            }
+
+            // Adjust sodium based on serum level
+            if (labValues.sodium !== null) {
+                if (labValues.sodium > 145) {
+                    targets.sodium = 1500;
+                    targets.adjustments.push('⚠️ High sodium: Limit reduced to 1500mg');
+                } else if (labValues.sodium < 135) {
+                    targets.sodium = 1800;
+                    targets.adjustments.push('⚠️ Low sodium: Moderate restriction (1800mg)');
+                }
+            }
+
+            return targets;
+        }
+
+        function applyLabAdjustments() {
+            const targets = calculateAdjustedTargets();
+            
+            // Update displayed targets
+            document.getElementById('kTarget').textContent = `${targets.potassiumMin}-${targets.potassiumMax}mg`;
+            document.getElementById('pTarget').textContent = `${targets.phosphorusMin}-${targets.phosphorusMax}mg`;
+            dailyFluidLimit = targets.fluidLimit;
+            document.getElementById('fluidLimit').textContent = dailyFluidLimit;
+            
+            // Update protein target
+            updateProteinTarget();
+            
+            // Show adjustment info
+            if (targets.adjustments.length > 0) {
+                const infoBox = document.getElementById('labAdjustmentInfo');
+                infoBox.innerHTML = '<strong>📊 Adjustments Applied:</strong><br>' + 
+                    targets.adjustments.join('<br>');
+                infoBox.style.background = 'var(--secondary)';
+                infoBox.style.borderLeft = '4px solid var(--primary)';
+                
+                // Add indicator to Lab Results button
+                const labBtn = document.getElementById('labsBtn');
+                labBtn.innerHTML = '⚕️ Lab Results ✓';
+                labBtn.style.background = 'var(--green)';
+            }
+            
+            // Re-calculate totals with new targets
+            updateTotals();
+            renderFoodGrid(); // Refresh food grid to show warnings
+            saveToStorage();
         }
 
         function savePlan() {
@@ -1518,12 +1754,51 @@
             }
         }
 
+        function openLabModal() {
+            // Populate with current values
+            document.getElementById('labEgfr').value = labValues.egfr || '';
+            document.getElementById('labPotassium').value = labValues.potassium || '';
+            document.getElementById('labPhosphorus').value = labValues.phosphorus || '';
+            document.getElementById('labAlbumin').value = labValues.albumin || '';
+            document.getElementById('labSodium').value = labValues.sodium || '';
+            
+            document.getElementById('labModal').style.display = 'flex';
+        }
+
+        function closeLabModal() {
+            document.getElementById('labModal').style.display = 'none';
+        }
+
+        function saveLabValues() {
+            // Get values from inputs
+            const egfr = parseFloat(document.getElementById('labEgfr').value);
+            const potassium = parseFloat(document.getElementById('labPotassium').value);
+            const phosphorus = parseFloat(document.getElementById('labPhosphorus').value);
+            const albumin = parseFloat(document.getElementById('labAlbumin').value);
+            const sodium = parseFloat(document.getElementById('labSodium').value);
+
+            // Store values (null if empty/invalid)
+            labValues.egfr = !isNaN(egfr) && egfr > 0 ? egfr : null;
+            labValues.potassium = !isNaN(potassium) && potassium > 0 ? potassium : null;
+            labValues.phosphorus = !isNaN(phosphorus) && phosphorus > 0 ? phosphorus : null;
+            labValues.albumin = !isNaN(albumin) && albumin > 0 ? albumin : null;
+            labValues.sodium = !isNaN(sodium) && sodium > 0 ? sodium : null;
+            labValues.lastUpdated = new Date().toISOString();
+
+            // Apply adjustments
+            applyLabAdjustments();
+            
+            closeLabModal();
+            showToast('Lab values saved! Targets adjusted.', 'success');
+        }
+
         function exportJson() {
             const data = {
                 currentPlan,
                 savedPlans,
                 patientWeight,
                 dailyFluidLimit,
+                labValues,
                 exportedAt: new Date().toISOString()
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1561,6 +1836,10 @@
                     if (typeof data.dailyFluidLimit === 'number' && data.dailyFluidLimit > 0) {
                         dailyFluidLimit = data.dailyFluidLimit;
                         document.getElementById('fluidLimit').textContent = dailyFluidLimit;
+                    }
+                    if (data.labValues && typeof data.labValues === 'object') {
+                        labValues = data.labValues;
+                        applyLabAdjustments();
                     }
                     saveToStorage();
                     renderSavedPlans();
