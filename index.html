@@ -1771,6 +1771,7 @@
             const modal = document.getElementById('labModal');
             if (modal) {
                 modal.style.display = 'flex';
+                modal.classList.add('active');
                 console.log('Modal should be visible now');
             } else {
                 console.error('Lab modal element not found!');
@@ -1778,7 +1779,11 @@
         }
 
         function closeLabModal() {
-            document.getElementById('labModal').style.display = 'none';
+            const modal = document.getElementById('labModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 200); // Wait for fade-out animation
         }
 
         function saveLabValues() {
