@@ -916,6 +916,32 @@
             <strong>Daily Limits:</strong> Sodium &lt;2000mg • Potassium <span id="kTarget">2000-3000mg</span> • Phosphorus <span id="pTarget">800-1000mg</span>
         </div>
         <button class="btn btn-primary" id="labsBtn" style="margin-left: auto;">⚕️ Lab Results</button>
+        <button class="btn btn-secondary" id="samplePlansBtn">📋 Sample Meals</button>
+        <button class="btn btn-secondary" id="educationBtn">📚 CKD Diet Guide</button>
+    </div>
+
+    <!-- Sample Meal Plans Modal -->
+    <div class="modal-overlay" id="samplePlansModal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px; max-height: 80vh; overflow-y: auto;">
+            <h2>📋 Sample Meal Plans</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Pre-designed meal plans by a renal dietician. Click to load into your planner.</p>
+            
+            <div id="samplePlansList" style="display: grid; gap: 16px;"></div>
+            
+            <button class="btn btn-secondary modal-close" style="margin-top: 20px;" id="closeSamplePlansModal">Close</button>
+        </div>
+    </div>
+
+    <!-- CKD Diet Education Modal -->
+    <div class="modal-overlay" id="educationModal" style="display: none;">
+        <div class="modal-content" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
+            <h2>📚 CKD Stage 3 Diet Guide</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Essential nutrition information for kidney health</p>
+            
+            <div id="educationContent"></div>
+            
+            <button class="btn btn-secondary modal-close" style="margin-top: 20px;" id="closeEducationModal">Close</button>
+        </div>
     </div>
 
     <div class="modal-overlay" id="labModal" style="display: none;">
@@ -1250,6 +1276,122 @@
             { id: 110, name: "Ginger Ale", portion: "8 oz (240ml)", category: "beverages", na: 25, k: 5, p: 5, protein: 0, cal: 85, fluid: 235 }
         ];
 
+        // Sample Meal Plans designed by renal dietician
+        const sampleMealPlans = {
+            "Low Potassium Day": {
+                description: "For patients with elevated potassium (>5.0 mmol/L). Limits high-K foods like bananas, potatoes, tomatoes.",
+                breakfast: [1, 2, 41, 31, 103], // Chicken Breast, Egg Whites, White Rice, Apple, Tea
+                lunch: [6, 16, 18, 41, 51], // Cod, Cabbage, Bell Peppers, White Rice, Olive Oil
+                dinner: [72, 63, 66, 41, 102], // Steamed Fish, Bok Choy, Water Chestnuts, White Rice, Coffee
+                snacks: [32, 37] // Blueberries, Strawberries
+            },
+            "Low Phosphorus Day": {
+                description: "For patients with high phosphorus (>4.5 mg/dL). Avoids dairy, nuts, whole grains.",
+                breakfast: [2, 44, 31, 103], // Egg Whites, White Bread, Apple, Tea
+                lunch: [1, 16, 19, 41, 51], // Chicken Breast, Cabbage, Cucumber, White Rice, Olive Oil
+                dinner: [3, 18, 23, 43], // Salmon, Bell Peppers, Zucchini, Pasta
+                snacks: [32, 33, 101] // Blueberries, Grapes, Water
+            },
+            "Balanced CKD Stage 3A": {
+                description: "Standard meal plan for Stage 3A (eGFR 45-59). Moderate restrictions.",
+                breakfast: [2, 45, 31, 103], // Egg Whites, Oatmeal, Apple, Tea
+                lunch: [1, 20, 26, 42, 51], // Chicken Breast, Green Beans, Carrots, Brown Rice, Olive Oil
+                dinner: [5, 17, 18, 41, 102], // Turkey Breast, Cauliflower, Bell Peppers, White Rice, Coffee
+                snacks: [32, 34, 101] // Blueberries, Pineapple, Water
+            },
+            "Chinese-Style Day": {
+                description: "Asian cuisine adapted for CKD. Uses steamed preparations and low-sodium seasonings.",
+                breakfast: [2, 61, 80, 103], // Egg Whites, Steamed White Rice, Asian Pear, Tea
+                lunch: [72, 63, 64, 61, 51], // Steamed Fish (Tilapia), Bok Choy, Chinese Cabbage, Steamed Rice, Olive Oil
+                dinner: [73, 65, 69, 62], // Steamed Chicken, Snow Peas, Shiitake Mushrooms, Rice Noodles
+                snacks: [77, 79, 101] // Lychee, Dragon Fruit, Water
+            },
+            "Low Sodium Day": {
+                description: "For patients with hypertension or fluid retention. <1500mg sodium.",
+                breakfast: [2, 45, 31, 103], // Egg Whites, Oatmeal, Apple, Tea
+                lunch: [6, 19, 18, 41, 51], // Cod, Cucumber, Bell Peppers, White Rice, Olive Oil
+                dinner: [1, 23, 20, 43], // Chicken Breast, Zucchini, Green Beans, Pasta
+                snacks: [32, 38, 101] // Blueberries, Watermelon, Water
+            },
+            "High Protein Day": {
+                description: "For patients with good albumin and no protein restriction. Maintains muscle mass.",
+                breakfast: [2, 13, 31, 103], // Egg Whites, Greek Yogurt, Apple, Tea
+                lunch: [3, 20, 26, 42, 51], // Salmon, Green Beans, Carrots, Brown Rice, Olive Oil
+                dinner: [1, 17, 18, 41], // Chicken Breast, Cauliflower, Bell Peppers, White Rice
+                snacks: [4, 32, 101] // Tofu, Blueberries, Water
+            }
+        };
+
+        // Educational content for CKD diet
+        const educationContent = {
+            "Protein": {
+                icon: "🍗",
+                title: "Protein (0.6-0.8 g/kg)",
+                info: "Moderate protein intake protects kidneys while maintaining muscle. Choose high-quality proteins like egg whites, chicken, fish. Limit red meat and processed meats.",
+                tips: [
+                    "Egg whites are the gold standard (highest biological value)",
+                    "Fish and poultry are better than red meat",
+                    "Spread protein throughout the day, not all at once",
+                    "If albumin is low (<3.5), you may need MORE protein - consult your doctor"
+                ]
+            },
+            "Sodium": {
+                icon: "🧂",
+                title: "Sodium (<2000mg)",
+                info: "High sodium raises blood pressure and causes fluid retention, stressing kidneys. Most sodium comes from processed foods, not the salt shaker.",
+                tips: [
+                    "Avoid: canned soups, deli meats, frozen dinners, fast food",
+                    "Read labels: 'low sodium' = <140mg per serving",
+                    "Use herbs and spices instead of salt",
+                    "Rinse canned vegetables to remove 40% of sodium"
+                ]
+            },
+            "Potassium": {
+                icon: "🍌",
+                title: "Potassium (varies by lab)",
+                info: "Damaged kidneys can't remove excess potassium. High levels (>5.5 mmol/L) can cause dangerous heart rhythms.",
+                tips: [
+                    "HIGH-K FOODS: bananas, oranges, potatoes, tomatoes, beans, dairy",
+                    "LOW-K FOODS: apples, berries, cabbage, cucumber, white rice",
+                    "Leach potatoes: Peel, dice, soak 4hrs, rinse, cook in fresh water",
+                    "If your K is normal, you may not need restrictions - check labs!"
+                ]
+            },
+            "Phosphorus": {
+                icon: "🥛",
+                title: "Phosphorus (800-1000mg)",
+                info: "High phosphorus weakens bones and damages blood vessels. Phosphate binders help, but diet control is key.",
+                tips: [
+                    "AVOID: dairy, cola, processed foods with 'phos' additives",
+                    "Phosphorus in additives is 100% absorbed vs 40-60% in natural foods",
+                    "Read ingredients: avoid anything with 'phosphate' or 'phos'",
+                    "Take binders WITH meals for maximum effect"
+                ]
+            },
+            "Fluids": {
+                icon: "💧",
+                title: "Fluid Limit (varies by stage)",
+                info: "Excess fluid stresses kidneys and causes swelling. Stage 3A may not need limits; Stage 3B often does (1500mL).",
+                tips: [
+                    "Count ALL liquids: water, coffee, tea, soup, ice cream",
+                    "1 cup = 240mL, 1 can soda = 355mL",
+                    "Suck on ice chips if thirsty (counts less than drinking)",
+                    "Monitor: daily weight, swelling in ankles, shortness of breath"
+                ]
+            },
+            "Food Safety": {
+                icon: "🛡️",
+                title: "Food Safety for CKD",
+                info: "Weakened immune system means higher infection risk. Cook foods thoroughly and avoid risky items.",
+                tips: [
+                    "Cook eggs until yolk is firm (no runny eggs)",
+                    "Avoid raw fish, oysters, unpasteurized dairy",
+                    "Wash fruits and vegetables thoroughly",
+                    "Refrigerate leftovers within 2 hours"
+                ]
+            }
+        };
+
         let currentPlan = {
             breakfast: [],
             lunch: [],
@@ -1383,10 +1525,20 @@
             document.getElementById('labsBtn').addEventListener('click', openLabModal);
             document.getElementById('saveLabsBtn').addEventListener('click', saveLabValues);
             document.getElementById('closeLabModal').addEventListener('click', closeLabModal);
+            document.getElementById('samplePlansBtn').addEventListener('click', openSamplePlansModal);
+            document.getElementById('closeSamplePlansModal').addEventListener('click', closeSamplePlansModal);
+            document.getElementById('educationBtn').addEventListener('click', openEducationModal);
+            document.getElementById('closeEducationModal').addEventListener('click', closeEducationModal);
             
-            // Close modal when clicking outside
+            // Close modals when clicking outside
             document.getElementById('labModal').addEventListener('click', (e) => {
                 if (e.target.id === 'labModal') closeLabModal();
+            });
+            document.getElementById('samplePlansModal').addEventListener('click', (e) => {
+                if (e.target.id === 'samplePlansModal') closeSamplePlansModal();
+            });
+            document.getElementById('educationModal').addEventListener('click', (e) => {
+                if (e.target.id === 'educationModal') closeEducationModal();
             });
         }
 
@@ -1802,6 +1954,96 @@
             setTimeout(() => {
                 modal.style.display = 'none';
             }, 200); // Wait for fade-out animation
+        }
+
+        function openSamplePlansModal() {
+            const modal = document.getElementById('samplePlansModal');
+            const listContainer = document.getElementById('samplePlansList');
+            
+            // Render sample plans
+            listContainer.innerHTML = Object.entries(sampleMealPlans).map(([name, plan]) => `
+                <div style="background: var(--surface-elevated); border: 2px solid var(--border); border-radius: var(--radius); padding: 16px;">
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">${name}</h3>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 12px;">${plan.description}</p>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; font-size: 13px;">
+                        <div><strong>🌅 Breakfast:</strong> ${plan.breakfast.length} items</div>
+                        <div><strong>☀️ Lunch:</strong> ${plan.lunch.length} items</div>
+                        <div><strong>🌙 Dinner:</strong> ${plan.dinner.length} items</div>
+                        <div><strong>🍎 Snacks:</strong> ${plan.snacks.length} items</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="loadSamplePlan('${name}')" style="width: 100%;">
+                        Load This Plan
+                    </button>
+                </div>
+            `).join('');
+            
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+        }
+
+        function closeSamplePlansModal() {
+            const modal = document.getElementById('samplePlansModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 200);
+        }
+
+        function loadSamplePlan(planName) {
+            const plan = sampleMealPlans[planName];
+            if (!plan) return;
+            
+            // Clear current plan
+            currentPlan = { breakfast: [], lunch: [], dinner: [], snacks: [] };
+            
+            // Load foods by ID
+            const meals = ['breakfast', 'lunch', 'dinner', 'snacks'];
+            meals.forEach(meal => {
+                plan[meal].forEach(foodId => {
+                    const food = foodDatabase.find(f => f.id === foodId);
+                    if (food) {
+                        currentPlan[meal].push({ ...food });
+                    }
+                });
+            });
+            
+            saveToStorage();
+            renderMealPlan();
+            updateTotals();
+            closeSamplePlansModal();
+            showToast(`Loaded sample plan: ${planName}`, 'success');
+        }
+
+        function openEducationModal() {
+            const modal = document.getElementById('educationModal');
+            const contentContainer = document.getElementById('educationContent');
+            
+            // Render education content
+            contentContainer.innerHTML = Object.values(educationContent).map(section => `
+                <div style="background: var(--surface-elevated); border-left: 4px solid var(--primary); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; margin-bottom: 8px;">
+                        <span style="font-size: 24px;">${section.icon}</span> ${section.title}
+                    </h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 12px;">${section.info}</p>
+                    <div style="background: var(--bg); border-radius: var(--radius-sm); padding: 12px;">
+                        <strong style="display: block; margin-bottom: 8px;">💡 Tips:</strong>
+                        <ul style="margin-left: 20px; line-height: 1.6;">
+                            ${section.tips.map(tip => `<li>${tip}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.style.display = 'flex';
+            modal.classList.add('active');
+        }
+
+        function closeEducationModal() {
+            const modal = document.getElementById('educationModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 200);
         }
 
         function saveLabValues() {
